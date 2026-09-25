@@ -1,13 +1,14 @@
 ![Version](https://img.shields.io/badge/version-2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-browser-lightgray)
-![Built with HTML](https://img.shields.io/badge/built%20with-HTML%20%7C%20JavaScript-orange)
+![Built with HTML](https://img.shields.io/badge/built%20with-HTML%20%7C%20CSS%20%7C%20JavaScript-orange)
 ![Status](https://img.shields.io/badge/status-stable-brightgreen)
 
 # Font Inspector & Glyph Analyzer
 
 A single-page, browser-based web application for inspecting, analyzing, and testing OpenType fonts (`.ttf`, `.otf`, `.woff`, `.woff2`). Built using **OpenType.js** and **Tailwind CSS**, it allows font designers, developers, and typographers to deeply inspect glyphs, Unicode ranges, OpenType GSUB features, and alternates in real-time.
 
+[Font Inspector](https://tagtthespellcaster.github.io/font-inspector)
 ## Key Features
 
 * **Client-Side Font Parsing**: Drag-and-drop or upload custom font files (`.ttf`, `.otf`, `.woff`, `.woff2`). Everything is processed locally in your browser—no backend or data transmission.
