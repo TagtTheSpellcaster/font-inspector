@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* Custom Scrollbar Styles */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -30,7 +31,7 @@
             font-family: Arial, "Helvetica Neue", Helvetica, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
         }
 
-        /* Drag & Drop Highlight */
+        /* Drag & Drop Visual Feedback */
         .drag-over {
             border-color: #6366f1 !important;
             background-color: rgba(99, 102, 241, 0.08) !important;
@@ -39,6 +40,7 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
+    <!-- Top Navigation Bar -->
     <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -46,21 +48,22 @@
                     <i data-lucide="type" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v2.1</span></h1>
-                    <p class="text-xs text-zinc-400">Analizzatore Unicode, Feature GSUB, Set Stilistici & Varianti</p>
+                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v2.2</span></h1>
+                    <p class="text-xs text-zinc-400">Unicode Analyzer, GSUB Features, Stylistic Sets & Font Variants</p>
                 </div>
             </div>
             
             <div id="fontMetaBadge" class="hidden flex items-center gap-3 text-xs bg-zinc-800/80 border border-zinc-700/60 rounded-full px-3 py-1.5">
-                <span id="fontFamilyName" class="font-semibold text-zinc-200">Nessun font</span>
+                <span id="fontFamilyName" class="font-semibold text-zinc-200">No font loaded</span>
                 <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
-                <span id="fontGlyphCount" class="text-zinc-400">0 Glifi</span>
+                <span id="fontGlyphCount" class="text-zinc-400">0 Glyphs</span>
             </div>
         </div>
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
 
+        <!-- File Upload Drag & Drop Area -->
         <section id="dropZone" class="border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer relative group">
             <input type="file" id="fontInput" accept=".ttf,.otf,.woff,.woff2" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div class="flex flex-col items-center justify-center gap-3">
@@ -69,106 +72,113 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-zinc-200">
-                        Trascina e rilascia qui il tuo file font, oppure <span class="text-indigo-400 underline decoration-indigo-500/30 underline-offset-4">sfoglia</span>
+                        Drag and drop your font file here, or <span class="text-indigo-400 underline decoration-indigo-500/30 underline-offset-4">browse files</span>
                     </p>
-                    <p class="text-xs text-zinc-500 mt-1">Formati supportati: TTF, OTF, WOFF, WOFF2</p>
+                    <p class="text-xs text-zinc-500 mt-1">Supported formats: TTF, OTF, WOFF, WOFF2</p>
                 </div>
             </div>
         </section>
 
         <div id="mainContent" class="hidden flex-1 flex flex-col gap-6">
 
-            <!-- OpenType Feature Analysis & Control Panel -->
+            <!-- Detected OpenType Features Panel -->
             <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
                 <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
                     <div class="flex items-center gap-2">
                         <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
-                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Feature OpenType Rilevate (GSUB)</h2>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Detected OpenType Features (GSUB)</h2>
                     </div>
-                    <span id="featuresFoundBadge" class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-full font-mono">0 Feature Rilevate</span>
+                    <span id="featuresFoundBadge" class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-full font-mono">0 Features Found</span>
                 </div>
 
-                <!-- Feature Pills / Dynamic Toggles -->
+                <!-- Feature Pills / Dynamic Toggles Container -->
                 <div id="featureTogglesContainer" class="flex flex-wrap gap-2 text-xs">
-                    <!-- Dynamic Feature Toggles will be inserted here -->
+                    <!-- Dynamic Feature Toggles inserted here -->
                 </div>
             </section>
 
-            <!-- Controls & Live Preview Card -->
+            <!-- Text Preview & Formatting Controls -->
             <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
                 
-                <!-- Toolbar Controls -->
                 <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
                     <div class="flex items-center gap-2">
                         <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
-                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Anteprima Testo & Rendering</h2>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Live Text Preview & Feature Tester</h2>
                     </div>
 
-                    <!-- Global Controls -->
-                    <div class="flex flex-wrap items-center gap-4">
-                        <!-- Font Size Slider -->
+                    <!-- Size Control Slider -->
+                    <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2 bg-zinc-800/60 border border-zinc-700/50 rounded-xl px-3 py-1.5 text-xs">
-                            <span class="text-zinc-400">Dimensione:</span>
+                            <span class="text-zinc-400">Font Size:</span>
                             <input type="range" id="fontSizeSlider" min="12" max="96" value="32" class="w-24 accent-indigo-500 cursor-pointer">
                             <span id="fontSizeLabel" class="text-zinc-300 font-mono w-8 text-right">32px</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Text Area Input -->
+                <!-- Input & Output Displays -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1.5">
+                    <div class="flex flex-col gap-2">
                         <label for="previewInput" class="text-xs text-zinc-400 flex items-center justify-between">
-                            <span>Digita il testo da testare con le feature attive:</span>
-                            <span class="text-[10px] text-zinc-500">Es. Quick brown fox 01234 fi fl ss01</span>
+                            <span>Type test text:</span>
+                            <span class="text-[10px] text-zinc-500">Supports custom phrases and special ligatures</span>
                         </label>
-                        <textarea id="previewInput" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 resize-none font-sans" placeholder="Scrivi qualcosa per testare il font, le sue legature e le sue varianti..."></textarea>
+                        <textarea id="previewInput" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 resize-none font-sans" placeholder="Type here to test ligatures, alternates, and font styles..."></textarea>
+                        
+                        <!-- Quick Ligature Preset Buttons -->
+                        <div class="flex items-center gap-1.5 flex-wrap pt-1">
+                            <span class="text-[11px] text-zinc-500 font-medium mr-1">Insert sample words:</span>
+                            <button type="button" class="preset-btn text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700/50 transition-colors" data-text="The quick brown fox jumps over the lazy dog.">Pangram</button>
+                            <button type="button" class="preset-btn text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700/50 transition-colors" data-text="flight official waffle fjord aesthetic flower affliction swift">Ligatures (fi, fl, ff, ffi, ffl, st)</button>
+                            <button type="button" class="preset-btn text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded border border-zinc-700/50 transition-colors" data-text="0123456789 1/2 3/4 1/4">Numbers & Fractions</button>
+                        </div>
                     </div>
 
-                    <!-- Custom Font Render Display -->
-                    <div class="flex flex-col gap-1.5">
-                        <span class="text-xs text-zinc-400">Risultato Rendering (Font Caricato):</span>
-                        <div id="previewDisplay" class="w-full h-[88px] bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-100 overflow-auto break-words flex items-center" style="font-size: 32px;">
-                            Le affascinanti ff, fi, fl, ffi, ffl si collegano perfettamente!
+                    <!-- Custom Font Render Area -->
+                    <div class="flex flex-col gap-2">
+                        <span class="text-xs text-zinc-400">Font Rendering (Active Features Applied):</span>
+                        <div id="previewDisplay" class="w-full h-[120px] bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-100 overflow-auto break-words flex items-center" style="font-size: 32px;">
+                            The quick brown fox jumps over the lazy dog.
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- Unicode Table Section -->
             <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-xl flex flex-col overflow-hidden flex-1">
                 
-                <!-- Table Controls Header -->
+                <!-- Table Search and Control Header -->
                 <div class="p-4 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-4 bg-zinc-900">
                     <div class="flex items-center gap-3">
                         <i data-lucide="grid" class="w-5 h-5 text-indigo-400"></i>
-                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Mappatura Caratteri, Unicode & Varianti</h2>
-                        <span id="glyphSearchCount" class="text-xs text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-700/50">0 trovati</span>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Character Map, Unicode & GSUB Variants</h2>
+                        <span id="glyphSearchCount" class="text-xs text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-700/50">0 found</span>
                     </div>
 
-                    <!-- Search Input & Filters -->
+                    <!-- Search Input -->
                     <div class="flex items-center gap-3 flex-1 max-w-md justify-end">
                         <div class="relative w-full">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                            <input type="text" id="searchInput" placeholder="Cerca per carattere, Hex (es. U+0041) o varianti..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="searchInput" placeholder="Search character, Hex (e.g. U+0041), name, or variant..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
                 </div>
 
-                <!-- Table View Container -->
+                <!-- Table View -->
                 <div class="overflow-x-auto flex-1 min-h-[400px]">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-zinc-800 bg-zinc-950/50 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                                 <th class="py-3 px-4 w-28">Unicode</th>
-                                <th class="py-3 px-4 w-24">Decimale</th>
-                                <th class="py-3 px-4 text-center w-32">Font Caricato</th>
+                                <th class="py-3 px-4 w-24">Decimal</th>
+                                <th class="py-3 px-4 text-center w-32">Loaded Font</th>
                                 <th class="py-3 px-4 text-center w-32">Fallback</th>
-                                <th class="py-3 px-4">Info Glifo</th>
-                                <th class="py-3 px-4">Varianti / Alternativi GSUB</th>
+                                <th class="py-3 px-4">Glyph Info</th>
+                                <th class="py-3 px-4">GSUB Variants / Alternates</th>
                             </tr>
                         </thead>
                         <tbody id="glyphTableBody" class="divide-y divide-zinc-800/50 text-sm font-mono">
-                            <!-- Rows loaded via JS -->
+                            <!-- Dynamically generated rows -->
                         </tbody>
                     </table>
                 </div>
@@ -176,9 +186,9 @@
                 <!-- Table Pagination Footer -->
                 <div class="p-4 border-t border-zinc-800 bg-zinc-900 flex items-center justify-between text-xs text-zinc-400">
                     <div class="flex items-center gap-2">
-                        <span>Mostrando</span>
+                        <span>Showing</span>
                         <span id="pageRange" class="font-semibold text-zinc-200">0 - 0</span>
-                        <span>di</span>
+                        <span>of</span>
                         <span id="totalGlyphsLabel" class="font-semibold text-zinc-200">0</span>
                     </div>
 
@@ -186,7 +196,7 @@
                         <button id="btnPrevPage" class="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 rounded-lg border border-zinc-700/50 transition-colors">
                             <i data-lucide="chevron-left" class="w-4 h-4"></i>
                         </button>
-                        <span id="currentPageLabel" class="px-3 font-medium text-zinc-300">Pagina 1</span>
+                        <span id="currentPageLabel" class="px-3 font-medium text-zinc-300">Page 1</span>
                         <button id="btnNextPage" class="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 rounded-lg border border-zinc-700/50 transition-colors">
                             <i data-lucide="chevron-right" class="w-4 h-4"></i>
                         </button>
@@ -211,32 +221,32 @@
             substitutionsMap: new Map() // Maps glyph index to array of alternate glyph info
         };
 
-        // Standard OpenType Feature Descriptions
+        // OpenType Feature Descriptions in English
         const FEATURE_DESCRIPTIONS = {
-            'liga': 'Legature Standard',
-            'clig': 'Legature Contestuali',
-            'dlig': 'Legature Discrezionali',
-            'hlig': 'Legature Storiche',
-            'calt': 'Alternativi Contestuali',
-            'swsh': 'Varianti Swash (Fiorettate)',
-            'titl': 'Varianti Titling',
-            'ordn': 'Ordinali',
-            'frac': 'Frazioni',
-            'zero': 'Zero Tagliato',
-            'onum': 'Cifre Stile Antico',
-            'lnum': 'Cifre Maiuscolette',
-            'pnum': 'Cifre Proporzionali',
-            'tnum': 'Cifre Tabulari',
-            'smcp': 'Maiuscoletto'
+            'liga': 'Standard Ligatures',
+            'clig': 'Contextual Ligatures',
+            'dlig': 'Discretionary Ligatures',
+            'hlig': 'Historical Ligatures',
+            'calt': 'Contextual Alternates',
+            'swsh': 'Swash Alternates',
+            'titl': 'Titling Alternates',
+            'ordn': 'Ordinals',
+            'frac': 'Fractions',
+            'zero': 'Slashed Zero',
+            'onum': 'Oldstyle Figures',
+            'lnum': 'Lining Figures',
+            'pnum': 'Proportional Figures',
+            'tnum': 'Tabular Figures',
+            'smcp': 'Small Capitals'
         };
 
-        // Generate Stylistic Sets SS01-SS20 descriptions
+        // Stylistic Sets SS01-SS20 English Descriptions
         for (let i = 1; i <= 20; i++) {
             const tag = `ss${i.toString().padStart(2, '0')}`;
-            FEATURE_DESCRIPTIONS[tag] = `Set Stilistico ${i}`;
+            FEATURE_DESCRIPTIONS[tag] = `Stylistic Set ${i}`;
         }
 
-        // DOM Elements
+        // DOM Element Cache
         const dropZone = document.getElementById('dropZone');
         const fontInput = document.getElementById('fontInput');
         const mainContent = document.getElementById('mainContent');
@@ -262,10 +272,10 @@
         const totalGlyphsLabel = document.getElementById('totalGlyphsLabel');
         const currentPageLabel = document.getElementById('currentPageLabel');
 
-        // Initialize Icons
+        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // --- Event Listeners ---
+        // --- Event Handlers ---
 
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -298,7 +308,16 @@
 
         previewInput.addEventListener('input', (e) => {
             const val = e.target.value;
-            previewDisplay.textContent = val || "Digitazione vuota...";
+            previewDisplay.textContent = val || "Type something to test font...";
+        });
+
+        // Sample Text Preset Buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const text = btn.getAttribute('data-text');
+                previewInput.value = text;
+                previewDisplay.textContent = text;
+            });
         });
 
         searchInput.addEventListener('input', (e) => {
@@ -320,42 +339,41 @@
             }
         });
 
-
         async function handleFontFile(file) {
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 
-                // Parse font using opentype.js
+                // Parse Font with OpenType.js
                 state.font = opentype.parse(arrayBuffer);
 
-                // Register Font in CSS environment using FontFace API
+                // Load Font dynamically into Document FontFace API
                 const fontFace = new FontFace(state.fontFamily, arrayBuffer);
                 const loadedFace = await fontFace.load();
                 document.fonts.add(loadedFace);
 
-                // Update UI metadata
+                // Update UI Header Info
                 const fontName = state.font.names.fullName?.en || state.font.names.fontFamily?.en || file.name.replace(/\.[^/.]+$/, "");
                 fontFamilyName.textContent = fontName;
                 
-                // Analyze OpenType GSUB Features & Substitutions
+                // Analyze GSUB Features & Lookups
                 analyzeOpenTypeFeatures();
 
-                // Extract Glyphs and CMAP
+                // Extract CMAP & Glyphs
                 extractGlyphs();
 
-                // Build Feature UI Controls
+                // Build Feature Toggles
                 buildFeatureControlsUI();
 
-                // Show Content Section
+                // Reveal Sections
                 mainContent.classList.remove('hidden');
                 fontMetaBadge.classList.remove('hidden');
                 
-                // Apply font style to preview
+                // Set Display Font Family
                 previewDisplay.style.fontFamily = `"${state.fontFamily}", fallback-font`;
 
-                // Set initial text if empty
+                // Set Default Sample Text
                 if (!previewInput.value) {
-                    previewInput.value = "Le affascinanti ff, fi, fl, ffi, ffl si collegano perfettamente!";
+                    previewInput.value = "The quick brown fox jumps over the lazy dog. flight official waffle fjord aesthetic flower affliction swift 0123456789";
                     previewDisplay.textContent = previewInput.value;
                 }
 
@@ -363,30 +381,30 @@
                 filterGlyphs('');
                 
             } catch (err) {
-                console.error("Errore nel caricamento del font:", err);
-                alert("Si è verificato un errore durante l'analisi del font. Verifica che il file sia valido (TTF, OTF, WOFF, WOFF2).");
+                console.error("Error loading font:", err);
+                alert("An error occurred while parsing the font file. Please ensure it is a valid TTF, OTF, WOFF, or WOFF2 file.");
             }
         }
 
-        // Programmatic GSUB Table Analysis
+        // Parse GSUB Table Features and Lookup Types
         function analyzeOpenTypeFeatures() {
             state.detectedFeatures = [];
             state.substitutionsMap = new Map();
 
             const gsub = state.font.tables.gsub;
             if (!gsub || !gsub.features || !gsub.lookups) {
-                console.log("Nessuna tabella GSUB trovata nel font.");
-                featuresFoundBadge.textContent = "0 Feature GSUB";
+                console.log("No GSUB table found in this font.");
+                featuresFoundBadge.textContent = "0 GSUB Features";
                 return;
             }
 
-            // Extract Feature Tags
+            // Collect Unique Feature Tags
             const featureTagsSet = new Set();
             gsub.features.forEach(feat => {
                 if (feat.tag) featureTagsSet.add(feat.tag);
             });
 
-            // Map feature tags to internal state
+            // Map Features to State
             featureTagsSet.forEach(tag => {
                 const isDefaultActive = ['liga', 'clig', 'calt'].includes(tag);
                 state.detectedFeatures.push({
@@ -396,18 +414,18 @@
                 });
             });
 
-            // Sort features (standard ones first, then stylistic sets)
+            // Sort Features (Standard first, then alphanumeric)
             state.detectedFeatures.sort((a, b) => a.tag.localeCompare(b.tag));
 
-            featuresFoundBadge.textContent = `${state.detectedFeatures.length} Feature GSUB Rilevate`;
+            featuresFoundBadge.textContent = `${state.detectedFeatures.length} GSUB Features Found`;
 
-            // Parse Lookups to extract Alternate & Single Glyph Substitutions
+            // Inspect Lookups for Alternates & Single Substitutions
             try {
                 gsub.lookups.forEach(lookup => {
                     if (!lookup.subtables) return;
 
                     lookup.subtables.forEach(subtable => {
-                        // Lookup Type 1: Single Substitution
+                        // Type 1: Single Substitution
                         if (lookup.lookupType === 1 && subtable.coverage) {
                             const glyphs = subtable.coverage.glyphs || [];
                             glyphs.forEach((gid, idx) => {
@@ -424,7 +442,7 @@
                             });
                         }
 
-                        // Lookup Type 3: Alternate Substitution (One-to-Many Alternates)
+                        // Type 3: Alternate Substitution
                         if (lookup.lookupType === 3 && subtable.coverage) {
                             const glyphs = subtable.coverage.glyphs || [];
                             glyphs.forEach((gid, idx) => {
@@ -439,7 +457,7 @@
                     });
                 });
             } catch (err) {
-                console.warn("Mappatura completa lookups GSUB non riuscita:", err);
+                console.warn("GSUB lookup analysis failed:", err);
             }
         }
 
@@ -450,13 +468,12 @@
             state.substitutionsMap.get(originalGid).add(altGid);
         }
 
-
-        // Build Interactive Feature Toggle Controls
+        // Build UI Toggles for OpenType Features
         function buildFeatureControlsUI() {
             featureTogglesContainer.innerHTML = '';
 
             if (state.detectedFeatures.length === 0) {
-                featureTogglesContainer.innerHTML = `<span class="text-zinc-500 italic">Nessun set stilistico o variante avanzata GSUB trovata in questo font.</span>`;
+                featureTogglesContainer.innerHTML = `<span class="text-zinc-500 italic">No stylistic sets or advanced GSUB features detected in this font.</span>`;
                 updateCSSFontFeatureSettings();
                 return;
             }
@@ -477,17 +494,14 @@
                 checkbox.className = 'sr-only';
 
                 checkbox.addEventListener('change', (e) => {
-                    // Update internal feature state
                     feature.active = e.target.checked;
                     
-                    // Update label visual styles
                     if (feature.active) {
                         label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-indigo-600/20 border-indigo-500/50 text-indigo-200';
                     } else {
                         label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-zinc-800/60 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200';
                     }
 
-                    // Synchronize CSS properties and table elements
                     updateCSSFontFeatureSettings();
                 });
 
@@ -510,34 +524,32 @@
             updateCSSFontFeatureSettings();
         }
 
-        // Fix for OpenType feature state restoration:
-        // Ensures both explicit '1' (on) and '0' (off) declarations are emitted into font-feature-settings
+        // CSS Feature Settings Generator (explicit '1' / '0' parameters)
         function updateCSSFontFeatureSettings() {
             if (state.detectedFeatures.length === 0) {
                 previewDisplay.style.fontFeatureSettings = 'normal';
                 return;
             }
 
-            // Construct explicit settings string for ALL detected features (e.g., '"liga" 1, "clig" 0, "ss01" 1')
+            // Generate explicit string: '"liga" 1, "clig" 0, "ss01" 1'
             const featureStrings = state.detectedFeatures.map(f => `"${f.tag}" ${f.active ? 1 : 0}`);
             const featureSettingsValue = featureStrings.join(', ');
 
-            // Apply to live preview container
+            // Apply to preview container
             previewDisplay.style.fontFeatureSettings = featureSettingsValue;
 
-            // Apply directly to current rendered table glyph elements
+            // Apply directly to rendered glyph table cells
             const glyphCells = document.querySelectorAll('.custom-font-cell');
             glyphCells.forEach(cell => {
                 cell.style.fontFeatureSettings = featureSettingsValue;
             });
         }
 
-
         function extractGlyphs() {
             state.glyphs = [];
 
             if (!state.font.glyphs || !state.font.glyphs.length) {
-                console.warn("Nessun glifo trovato nel font.");
+                console.warn("No glyphs found in font.");
                 return;
             }
 
@@ -563,7 +575,6 @@
                 const glyph = glyphMap.get(code);
                 const gid = glyph ? glyph.index : null;
 
-                // Lookup alternate glyphs for this specific glyph ID
                 const alternatesGids = (gid !== null && state.substitutionsMap.has(gid)) 
                     ? Array.from(state.substitutionsMap.get(gid)) 
                     : [];
@@ -583,12 +594,12 @@
                     hex: hex,
                     char: char,
                     gid: gid,
-                    name: glyph ? (glyph.name || 'glifo_' + code) : 'sconosciuto',
+                    name: glyph ? (glyph.name || 'glyph_' + code) : 'unknown',
                     alternates: alternatesInfo
                 };
             });
 
-            fontGlyphCount.textContent = `${state.glyphs.length} Glifi`;
+            fontGlyphCount.textContent = `${state.glyphs.length} Glyphs`;
         }
 
         function filterGlyphs(query) {
@@ -596,7 +607,6 @@
                 state.filteredGlyphs = [...state.glyphs];
             } else {
                 const q = query.toLowerCase().trim();
-                const isHexSearch = q.startsWith('u+') || q.startsWith('0x');
                 const cleanHex = q.replace(/^(u\+|0x)/, '');
 
                 state.filteredGlyphs = state.glyphs.filter(g => {
@@ -610,11 +620,10 @@
                 });
             }
 
-            glyphSearchCount.textContent = `${state.filteredGlyphs.length} trovati`;
+            glyphSearchCount.textContent = `${state.filteredGlyphs.length} found`;
             state.currentPage = 1;
             renderTable();
         }
-
 
         function renderTable() {
             glyphTableBody.innerHTML = '';
@@ -627,13 +636,13 @@
                     <tr>
                         <td colspan="6" class="py-12 text-center text-zinc-500 font-sans">
                             <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
-                            Nessun glifo trovato corrispondente ai criteri di ricerca.
+                            No glyphs found matching your search query.
                         </td>
                     </tr>
                 `;
                 lucide.createIcons();
                 pageRange.textContent = '0 - 0';
-                currentPageLabel.textContent = 'Pagina 0';
+                currentPageLabel.textContent = 'Page 0';
                 btnPrevPage.disabled = true;
                 btnNextPage.disabled = true;
                 return;
@@ -646,10 +655,8 @@
             const endIndex = Math.min(startIndex + state.pageSize, total);
 
             const pageItems = state.filteredGlyphs.slice(startIndex, endIndex);
-
             const fragment = document.createDocumentFragment();
 
-            // Explicit feature settings string for new table cells
             const activeFeatureSettings = state.detectedFeatures.length > 0 
                 ? state.detectedFeatures.map(f => `"${f.tag}" ${f.active ? 1 : 0}`).join(', ')
                 : 'normal';
@@ -658,7 +665,6 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-zinc-800/40 hover:bg-zinc-800/30 transition-colors';
 
-                // Format Alternates HTML Badge
                 let alternatesHTML = '<span class="text-zinc-600 text-xs font-sans">—</span>';
                 if (item.alternates && item.alternates.length > 0) {
                     alternatesHTML = `<div class="flex flex-wrap gap-1.5 items-center">`;
@@ -699,9 +705,8 @@
 
             glyphTableBody.appendChild(fragment);
 
-            // Update Pagination UI
             pageRange.textContent = `${startIndex + 1} - ${endIndex}`;
-            currentPageLabel.textContent = `Pagina ${state.currentPage} di ${maxPage}`;
+            currentPageLabel.textContent = `Page ${state.currentPage} of ${maxPage}`;
 
             btnPrevPage.disabled = state.currentPage === 1;
             btnNextPage.disabled = state.currentPage === maxPage;
@@ -709,7 +714,6 @@
             lucide.createIcons();
         }
 
-        // Helper to escape HTML characters safely
         function escapeHtml(str) {
             return str
                 .replace(/&/g, "&amp;")
