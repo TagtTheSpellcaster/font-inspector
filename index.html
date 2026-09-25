@@ -26,16 +26,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #52525b;
         }
-        
-        /* Font Feature Settings Utilities */
-        .ligatures-on {
-            font-feature-settings: "liga" 1, "clig" 1, "dlig" 1, "hlig" 1, "calt" 1;
-            font-variant-ligatures: normal common-ligatures discretionary-ligatures contextual;
-        }
-        .ligatures-off {
-            font-feature-settings: "liga" 0, "clig" 0, "dlig" 0, "hlig" 0, "calt" 0;
-            font-variant-ligatures: no-common-ligatures no-discretionary-ligatures no-contextual;
-        }
 
         .fallback-font {
             font-family: Arial, "Helvetica Neue", Helvetica, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -58,8 +48,8 @@
                     <i data-lucide="type" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v1.0</span></h1>
-                    <p class="text-xs text-zinc-400">Analizzatore Unicode, Tabelle CMAP e Ligature OpenType</p>
+                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v2.0</span></h1>
+                    <p class="text-xs text-zinc-400">Analizzatore Unicode, Feature GSUB, Set Stilistici & Varianti</p>
                 </div>
             </div>
             
@@ -92,6 +82,22 @@
         <!-- Main Content Area (Hidden by default until font loaded) -->
         <div id="mainContent" class="hidden flex-1 flex flex-col gap-6">
 
+            <!-- OpenType Feature Analysis & Control Panel -->
+            <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Feature OpenType Rilevate (GSUB)</h2>
+                    </div>
+                    <span id="featuresFoundBadge" class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded-full font-mono">0 Feature Rilevate</span>
+                </div>
+
+                <!-- Feature Pills / Dynamic Toggles -->
+                <div id="featureTogglesContainer" class="flex flex-wrap gap-2 text-xs">
+                    <!-- Dynamic Feature Toggles will be inserted here -->
+                </div>
+            </section>
+
             <!-- Controls & Live Preview Card -->
             <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
                 
@@ -99,18 +105,11 @@
                 <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
                     <div class="flex items-center gap-2">
                         <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
-                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Anteprima Testo & Opzioni</h2>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Anteprima Testo & Rendering</h2>
                     </div>
 
                     <!-- Global Controls -->
                     <div class="flex flex-wrap items-center gap-4">
-                        <!-- Ligatures Toggle -->
-                        <label class="flex items-center gap-2.5 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl px-3 py-1.5 cursor-pointer transition-colors text-xs select-none">
-                            <input type="checkbox" id="toggleLigatures" checked class="sr-only peer">
-                            <div class="w-8 h-4 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 relative"></div>
-                            <span class="font-medium text-zinc-300">Abilita Ligature (OpenType)</span>
-                        </label>
-
                         <!-- Font Size Slider -->
                         <div class="flex items-center gap-2 bg-zinc-800/60 border border-zinc-700/50 rounded-xl px-3 py-1.5 text-xs">
                             <span class="text-zinc-400">Dimensione:</span>
@@ -124,16 +123,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="flex flex-col gap-1.5">
                         <label for="previewInput" class="text-xs text-zinc-400 flex items-center justify-between">
-                            <span>Digita il testo da testare:</span>
-                            <span class="text-[10px] text-zinc-500">Es. fi, fl, ffi, ff, ==, =>, !=</span>
+                            <span>Digita il testo da testare con le feature attive:</span>
+                            <span class="text-[10px] text-zinc-500">Es. Quick brown fox 01234 fi fl ss01</span>
                         </label>
-                        <textarea id="previewInput" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 resize-none font-sans" placeholder="Scrivi qualcosa per testare il font e le sue legature..."></textarea>
+                        <textarea id="previewInput" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 resize-none font-sans" placeholder="Scrivi qualcosa per testare il font, le sue legature e le sue varianti..."></textarea>
                     </div>
 
                     <!-- Custom Font Render Display -->
                     <div class="flex flex-col gap-1.5">
                         <span class="text-xs text-zinc-400">Risultato Rendering (Font Caricato):</span>
-                        <div id="previewDisplay" class="w-full h-[88px] bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-100 overflow-auto break-words ligatures-on flex items-center" style="font-size: 32px;">
+                        <div id="previewDisplay" class="w-full h-[88px] bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-100 overflow-auto break-words flex items-center" style="font-size: 32px;">
                             Le affascinanti ff, fi, fl, ffi, ffl si collegano perfettamente!
                         </div>
                     </div>
@@ -147,7 +146,7 @@
                 <div class="p-4 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-4 bg-zinc-900">
                     <div class="flex items-center gap-3">
                         <i data-lucide="grid" class="w-5 h-5 text-indigo-400"></i>
-                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Mappatura Caratteri & Unicode</h2>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Mappatura Caratteri, Unicode & Varianti</h2>
                         <span id="glyphSearchCount" class="text-xs text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-700/50">0 trovati</span>
                     </div>
 
@@ -155,7 +154,7 @@
                     <div class="flex items-center gap-3 flex-1 max-w-md justify-end">
                         <div class="relative w-full">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                            <input type="text" id="searchInput" placeholder="Cerca per carattere, Hex (es. U+0041 o 0041) o Decimale..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
+                            <input type="text" id="searchInput" placeholder="Cerca per carattere, Hex (es. U+0041) o varianti..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
                         </div>
                     </div>
                 </div>
@@ -165,11 +164,12 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-zinc-800 bg-zinc-950/50 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                                <th class="py-3 px-4 w-32">Unicode (Hex)</th>
-                                <th class="py-3 px-4 w-28">Decimale</th>
-                                <th class="py-3 px-4 text-center w-36">Font Caricato</th>
-                                <th class="py-3 px-4 text-center w-36">Fallback (Arial)</th>
-                                <th class="py-3 px-4">Nome / Info Glifo</th>
+                                <th class="py-3 px-4 w-28">Unicode</th>
+                                <th class="py-3 px-4 w-24">Decimale</th>
+                                <th class="py-3 px-4 text-center w-32">Font Caricato</th>
+                                <th class="py-3 px-4 text-center w-32">Fallback</th>
+                                <th class="py-3 px-4">Info Glifo</th>
+                                <th class="py-3 px-4">Varianti / Alternativi GSUB</th>
                             </tr>
                         </thead>
                         <tbody id="glyphTableBody" class="divide-y divide-zinc-800/50 text-sm font-mono">
@@ -211,9 +211,35 @@
             filteredGlyphs: [],
             currentPage: 1,
             pageSize: 50,
-            ligaturesEnabled: true,
-            fontSize: 32
+            fontSize: 32,
+            detectedFeatures: [], // List of { tag: string, name: string, active: boolean }
+            substitutionsMap: new Map() // Maps glyph index to array of alternate glyph info
         };
+
+        // Standard OpenType Feature Descriptions
+        const FEATURE_DESCRIPTIONS = {
+            'liga': 'Legature Standard',
+            'clig': 'Legature Contestuali',
+            'dlig': 'Legature Discrezionali',
+            'hlig': 'Legature Storiche',
+            'calt': 'Alternativi Contestuali',
+            'swsh': 'Varianti Swash (Fiorettate)',
+            'titl': 'Varianti Titling',
+            'ordn': 'Ordinali',
+            'frac': 'Frazioni',
+            'zero': 'Zero Tagliato',
+            'onum': 'Cifre Stile Antico',
+            'lnum': 'Cifre Maiuscolette',
+            'pnum': 'Cifre Proporzionali',
+            'tnum': 'Cifre Tabulari',
+            'smcp': 'Maiuscoletto'
+        };
+
+        // Generate Stylistic Sets SS01-SS20 descriptions
+        for (let i = 1; i <= 20; i++) {
+            const tag = `ss${i.toString().padStart(2, '0')}`;
+            FEATURE_DESCRIPTIONS[tag] = `Set Stilistico ${i}`;
+        }
 
         // DOM Elements
         const dropZone = document.getElementById('dropZone');
@@ -225,9 +251,11 @@
         
         const previewInput = document.getElementById('previewInput');
         const previewDisplay = document.getElementById('previewDisplay');
-        const toggleLigatures = document.getElementById('toggleLigatures');
         const fontSizeSlider = document.getElementById('fontSizeSlider');
         const fontSizeLabel = document.getElementById('fontSizeLabel');
+
+        const featureTogglesContainer = document.getElementById('featureTogglesContainer');
+        const featuresFoundBadge = document.getElementById('featuresFoundBadge');
 
         const glyphTableBody = document.getElementById('glyphTableBody');
         const searchInput = document.getElementById('searchInput');
@@ -244,7 +272,6 @@
 
         // --- Event Listeners ---
 
-        // File Selection & Drag-and-Drop
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('drag-over');
@@ -266,12 +293,6 @@
             if (e.target.files.length > 0) {
                 handleFontFile(e.target.files[0]);
             }
-        });
-
-        // Controls
-        toggleLigatures.addEventListener('change', (e) => {
-            state.ligaturesEnabled = e.target.checked;
-            updateLigaturesState();
         });
 
         fontSizeSlider.addEventListener('input', (e) => {
@@ -304,7 +325,7 @@
             }
         });
 
-        // --- Core Font Processing ---
+        // --- Core Font Processing & Feature Detection ---
 
         async function handleFontFile(file) {
             try {
@@ -322,8 +343,14 @@
                 const fontName = state.font.names.fullName?.en || state.font.names.fontFamily?.en || file.name.replace(/\.[^/.]+$/, "");
                 fontFamilyName.textContent = fontName;
                 
+                // Analyze OpenType GSUB Features & Substitutions
+                analyzeOpenTypeFeatures();
+
                 // Extract Glyphs and CMAP
                 extractGlyphs();
+
+                // Build Feature UI Controls
+                buildFeatureControlsUI();
 
                 // Show Content Section
                 mainContent.classList.remove('hidden');
@@ -347,52 +374,220 @@
             }
         }
 
-        function extractGlyphs() {
-            state.glyphs = [];
-            const cmap = state.font.tables.cmap;
+        // Programmatic GSUB Table Analysis
+        function analyzeOpenTypeFeatures() {
+            state.detectedFeatures = [];
+            state.substitutionsMap = new Map();
 
-            if (!cmap) {
-                console.warn("Nessuna tabella CMAP trovata nel font.");
+            const gsub = state.font.tables.gsub;
+            if (!gsub || !gsub.features || !gsub.lookups) {
+                console.log("Nessuna tabella GSUB trovata nel font.");
+                featuresFoundBadge.textContent = "0 Feature GSUB";
                 return;
             }
 
-            // Extract unicodes from CMAP tables
+            // Extract Feature Tags
+            const featureTagsSet = new Set();
+            gsub.features.forEach(feat => {
+                if (feat.tag) featureTagsSet.add(feat.tag);
+            });
+
+            // Map feature tags to internal state
+            featureTagsSet.forEach(tag => {
+                const isDefaultActive = ['liga', 'clig', 'calt'].includes(tag);
+                state.detectedFeatures.push({
+                    tag: tag,
+                    name: FEATURE_DESCRIPTIONS[tag] || `Feature '${tag}'`,
+                    active: isDefaultActive
+                });
+            });
+
+            // Sort features (standard ones first, then stylistic sets)
+            state.detectedFeatures.sort((a, b) => a.tag.localeCompare(b.tag));
+
+            featuresFoundBadge.textContent = `${state.detectedFeatures.length} Feature GSUB Rilevate`;
+
+            // Parse Lookups to extract Alternate & Single Glyph Substitutions
+            try {
+                gsub.lookups.forEach(lookup => {
+                    if (!lookup.subtables) return;
+
+                    lookup.subtables.forEach(subtable => {
+                        // Lookup Type 1: Single Substitution
+                        if (lookup.lookupType === 1 && subtable.coverage) {
+                            const glyphs = subtable.coverage.glyphs || [];
+                            glyphs.forEach((gid, idx) => {
+                                let substituteGid = gid;
+                                if (subtable.substFormat === 1) {
+                                    substituteGid = (gid + subtable.deltaGlyphId) % 65536;
+                                } else if (subtable.substFormat === 2 && subtable.substitute) {
+                                    substituteGid = subtable.substitute[idx];
+                                }
+
+                                if (substituteGid !== undefined && substituteGid !== gid) {
+                                    addSubstitutionToMap(gid, substituteGid);
+                                }
+                            });
+                        }
+
+                        // Lookup Type 3: Alternate Substitution (One-to-Many Alternates)
+                        if (lookup.lookupType === 3 && subtable.coverage) {
+                            const glyphs = subtable.coverage.glyphs || [];
+                            glyphs.forEach((gid, idx) => {
+                                if (subtable.alternates && subtable.alternates[idx]) {
+                                    const alts = subtable.alternates[idx];
+                                    alts.forEach(altGid => {
+                                        addSubstitutionToMap(gid, altGid);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                });
+            } catch (err) {
+                console.warn("Mappatura completa lookups GSUB non riuscita:", err);
+            }
+        }
+
+        function addSubstitutionToMap(originalGid, altGid) {
+            if (!state.substitutionsMap.has(originalGid)) {
+                state.substitutionsMap.set(originalGid, new Set());
+            }
+            state.substitutionsMap.get(originalGid).add(altGid);
+        }
+
+        // Build Interactive Feature Toggle Controls
+        function buildFeatureControlsUI() {
+            featureTogglesContainer.innerHTML = '';
+
+            if (state.detectedFeatures.length === 0) {
+                featureTogglesContainer.innerHTML = `<span class="text-zinc-500 italic">Nessun set stilistico o variante avanzata GSUB trovata in questo font.</span>`;
+                updateCSSFontFeatureSettings();
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            state.detectedFeatures.forEach(feature => {
+                const label = document.createElement('label');
+                label.className = `flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none ${
+                    feature.active 
+                        ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200' 
+                        : 'bg-zinc-800/60 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200'
+                }`;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = feature.active;
+                checkbox.className = 'sr-only';
+
+                checkbox.addEventListener('change', (e) => {
+                    feature.active = e.target.checked;
+                    
+                    // Update label styles
+                    if (feature.active) {
+                        label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-indigo-600/20 border-indigo-500/50 text-indigo-200';
+                    } else {
+                        label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-zinc-800/60 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200';
+                    }
+
+                    updateCSSFontFeatureSettings();
+                });
+
+                label.appendChild(checkbox);
+
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'font-mono font-bold text-[10px] bg-zinc-950/60 px-1.5 py-0.5 rounded text-indigo-300 border border-indigo-500/20';
+                tagSpan.textContent = feature.tag;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = feature.name;
+
+                label.appendChild(tagSpan);
+                label.appendChild(nameSpan);
+
+                fragment.appendChild(label);
+            });
+
+            featureTogglesContainer.appendChild(fragment);
+            updateCSSFontFeatureSettings();
+        }
+
+        // Apply font-feature-settings dynamically to preview and glyph table cells
+        function updateCSSFontFeatureSettings() {
+            const activeTags = state.detectedFeatures
+                .filter(f => f.active)
+                .map(f => `"${f.tag}" 1`);
+
+            const featureSettingsValue = activeTags.length > 0 ? activeTags.join(', ') : 'normal';
+
+            // Apply to live preview
+            previewDisplay.style.fontFeatureSettings = featureSettingsValue;
+
+            // Apply to glyph rendering cells in table
+            const glyphCells = document.querySelectorAll('.custom-font-cell');
+            glyphCells.forEach(cell => {
+                cell.style.fontFeatureSettings = featureSettingsValue;
+            });
+        }
+
+        function extractGlyphs() {
+            state.glyphs = [];
+
+            if (!state.font.glyphs || !state.font.glyphs.length) {
+                console.warn("Nessun glifo trovato nel font.");
+                return;
+            }
+
             const glyphMap = new Map();
 
-            // OpenType.js provides font.unicodes or glyph mappings
-            if (state.font.glyphs && state.font.glyphs.length) {
-                for (let i = 0; i < state.font.glyphs.length; i++) {
-                    const glyph = state.font.glyphs.get(i);
-                    if (glyph.unicodes && glyph.unicodes.length > 0) {
-                        glyph.unicodes.forEach(unicode => {
-                            glyphMap.set(unicode, glyph);
-                        });
-                    } else if (glyph.unicode !== undefined) {
-                        glyphMap.set(glyph.unicode, glyph);
-                    }
+            for (let i = 0; i < state.font.glyphs.length; i++) {
+                const glyph = state.font.glyphs.get(i);
+                
+                if (glyph.unicodes && glyph.unicodes.length > 0) {
+                    glyph.unicodes.forEach(unicode => {
+                        glyphMap.set(unicode, glyph);
+                    });
+                } else if (glyph.unicode !== undefined) {
+                    glyphMap.set(glyph.unicode, glyph);
                 }
             }
 
-            // Fallback parsing via font.tables.cmap
             const unicodes = Array.from(glyphMap.keys()).sort((a, b) => a - b);
 
             state.glyphs = unicodes.map(code => {
                 const char = String.fromCodePoint(code);
                 const hex = 'U+' + code.toString(16).padStart(4, '0').toUpperCase();
                 const glyph = glyphMap.get(code);
+                const gid = glyph ? glyph.index : null;
+
+                // Lookup alternate glyphs for this specific glyph ID
+                const alternatesGids = (gid !== null && state.substitutionsMap.has(gid)) 
+                    ? Array.from(state.substitutionsMap.get(gid)) 
+                    : [];
+
+                const alternatesInfo = alternatesGids.map(altGid => {
+                    const altGlyph = state.font.glyphs.get(altGid);
+                    const altChar = (altGlyph && altGlyph.unicode !== undefined) ? String.fromCodePoint(altGlyph.unicode) : null;
+                    return {
+                        gid: altGid,
+                        name: altGlyph ? (altGlyph.name || `gid_${altGid}`) : `gid_${altGid}`,
+                        char: altChar
+                    };
+                });
 
                 return {
                     unicode: code,
                     hex: hex,
                     char: char,
-                    name: glyph ? (glyph.name || 'glifo_' + code) : 'sconosciuto'
+                    gid: gid,
+                    name: glyph ? (glyph.name || 'glifo_' + code) : 'sconosciuto',
+                    alternates: alternatesInfo
                 };
             });
 
             fontGlyphCount.textContent = `${state.glyphs.length} Glifi`;
         }
-
-        // --- Filtering and Pagination ---
 
         function filterGlyphs(query) {
             if (!query) {
@@ -407,36 +602,15 @@
                     const hexMatch = g.hex.toLowerCase().includes(q) || g.hex.toLowerCase().includes(cleanHex);
                     const decMatch = g.unicode.toString().includes(q);
                     const nameMatch = g.name.toLowerCase().includes(q);
+                    const altMatch = g.alternates.some(a => a.name.toLowerCase().includes(q));
 
-                    return charMatch || hexMatch || decMatch || nameMatch;
+                    return charMatch || hexMatch || decMatch || nameMatch || altMatch;
                 });
             }
 
             glyphSearchCount.textContent = `${state.filteredGlyphs.length} trovati`;
             state.currentPage = 1;
             renderTable();
-        }
-
-        function updateLigaturesState() {
-            if (state.ligaturesEnabled) {
-                previewDisplay.classList.remove('ligatures-off');
-                previewDisplay.classList.add('ligatures-on');
-            } else {
-                previewDisplay.classList.remove('ligatures-on');
-                previewDisplay.classList.add('ligatures-off');
-            }
-
-            // Apply ligatures class to loaded font cells in table
-            const glyphCells = document.querySelectorAll('.custom-font-cell');
-            glyphCells.forEach(cell => {
-                if (state.ligaturesEnabled) {
-                    cell.classList.remove('ligatures-off');
-                    cell.classList.add('ligatures-on');
-                } else {
-                    cell.classList.remove('ligatures-on');
-                    cell.classList.add('ligatures-off');
-                }
-            });
         }
 
         function renderTable() {
@@ -448,7 +622,7 @@
             if (total === 0) {
                 glyphTableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="py-12 text-center text-zinc-500 font-sans">
+                        <td colspan="6" class="py-12 text-center text-zinc-500 font-sans">
                             <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
                             Nessun glifo trovato corrispondente ai criteri di ricerca.
                         </td>
@@ -472,17 +646,33 @@
 
             const fragment = document.createDocumentFragment();
 
+            const activeTags = state.detectedFeatures.filter(f => f.active).map(f => `"${f.tag}" 1`).join(', ');
+
             pageItems.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-zinc-800/40 hover:bg-zinc-800/30 transition-colors';
 
-                const ligClass = state.ligaturesEnabled ? 'ligatures-on' : 'ligatures-off';
+                // Format Alternates HTML Badge
+                let alternatesHTML = '<span class="text-zinc-600 text-xs font-sans">—</span>';
+                if (item.alternates && item.alternates.length > 0) {
+                    alternatesHTML = `<div class="flex flex-wrap gap-1.5 items-center">`;
+                    item.alternates.forEach(alt => {
+                        const displayChar = alt.char ? escapeHtml(alt.char) : '✦';
+                        alternatesHTML += `
+                            <span class="inline-flex items-center gap-1 bg-indigo-950/40 border border-indigo-500/30 px-2 py-1 rounded text-xs text-indigo-200" title="GID: ${alt.gid} (${alt.name})">
+                                <span class="custom-font-cell text-lg leading-none" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeTags || 'normal'};">${displayChar}</span>
+                                <span class="text-[10px] text-indigo-400 font-mono">#${alt.gid}</span>
+                            </span>
+                        `;
+                    });
+                    alternatesHTML += `</div>`;
+                }
 
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono text-indigo-400 font-medium">${item.hex}</td>
                     <td class="py-3 px-4 text-zinc-400">${item.unicode}</td>
                     <td class="py-3 px-4 text-center">
-                        <span class="custom-font-cell inline-block text-2xl text-zinc-100 ${ligClass}" style="font-family: '${state.fontFamily}', fallback-font;">
+                        <span class="custom-font-cell inline-block text-2xl text-zinc-100" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeTags || 'normal'};">
                             ${escapeHtml(item.char)}
                         </span>
                     </td>
@@ -493,6 +683,9 @@
                     </td>
                     <td class="py-3 px-4 text-zinc-400 text-xs font-sans">
                         <span class="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/40">${escapeHtml(item.name)}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        ${alternatesHTML}
                     </td>
                 `;
                 fragment.appendChild(tr);
