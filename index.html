@@ -11,7 +11,6 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Custom scrollbars */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -40,7 +39,6 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- Header -->
     <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -48,7 +46,7 @@
                     <i data-lucide="type" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v2.0</span></h1>
+                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v2.1</span></h1>
                     <p class="text-xs text-zinc-400">Analizzatore Unicode, Feature GSUB, Set Stilistici & Varianti</p>
                 </div>
             </div>
@@ -63,7 +61,6 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
 
-        <!-- File Upload Area -->
         <section id="dropZone" class="border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer relative group">
             <input type="file" id="fontInput" accept=".ttf,.otf,.woff,.woff2" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
             <div class="flex flex-col items-center justify-center gap-3">
@@ -79,7 +76,6 @@
             </div>
         </section>
 
-        <!-- Main Content Area (Hidden by default until font loaded) -->
         <div id="mainContent" class="hidden flex-1 flex flex-col gap-6">
 
             <!-- OpenType Feature Analysis & Control Panel -->
@@ -139,7 +135,6 @@
                 </div>
             </section>
 
-            <!-- Unicode Glyph Table Section -->
             <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-xl flex flex-col overflow-hidden flex-1">
                 
                 <!-- Table Controls Header -->
@@ -325,7 +320,6 @@
             }
         });
 
-        // --- Core Font Processing & Feature Detection ---
 
         async function handleFontFile(file) {
             try {
@@ -456,6 +450,7 @@
             state.substitutionsMap.get(originalGid).add(altGid);
         }
 
+
         // Build Interactive Feature Toggle Controls
         function buildFeatureControlsUI() {
             featureTogglesContainer.innerHTML = '';
@@ -482,15 +477,17 @@
                 checkbox.className = 'sr-only';
 
                 checkbox.addEventListener('change', (e) => {
+                    // Update internal feature state
                     feature.active = e.target.checked;
                     
-                    // Update label styles
+                    // Update label visual styles
                     if (feature.active) {
                         label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-indigo-600/20 border-indigo-500/50 text-indigo-200';
                     } else {
                         label.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all cursor-pointer select-none bg-zinc-800/60 border-zinc-700/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200';
                     }
 
+                    // Synchronize CSS properties and table elements
                     updateCSSFontFeatureSettings();
                 });
 
@@ -513,23 +510,28 @@
             updateCSSFontFeatureSettings();
         }
 
-        // Apply font-feature-settings dynamically to preview and glyph table cells
+        // Fix for OpenType feature state restoration:
+        // Ensures both explicit '1' (on) and '0' (off) declarations are emitted into font-feature-settings
         function updateCSSFontFeatureSettings() {
-            const activeTags = state.detectedFeatures
-                .filter(f => f.active)
-                .map(f => `"${f.tag}" 1`);
+            if (state.detectedFeatures.length === 0) {
+                previewDisplay.style.fontFeatureSettings = 'normal';
+                return;
+            }
 
-            const featureSettingsValue = activeTags.length > 0 ? activeTags.join(', ') : 'normal';
+            // Construct explicit settings string for ALL detected features (e.g., '"liga" 1, "clig" 0, "ss01" 1')
+            const featureStrings = state.detectedFeatures.map(f => `"${f.tag}" ${f.active ? 1 : 0}`);
+            const featureSettingsValue = featureStrings.join(', ');
 
-            // Apply to live preview
+            // Apply to live preview container
             previewDisplay.style.fontFeatureSettings = featureSettingsValue;
 
-            // Apply to glyph rendering cells in table
+            // Apply directly to current rendered table glyph elements
             const glyphCells = document.querySelectorAll('.custom-font-cell');
             glyphCells.forEach(cell => {
                 cell.style.fontFeatureSettings = featureSettingsValue;
             });
         }
+
 
         function extractGlyphs() {
             state.glyphs = [];
@@ -613,6 +615,7 @@
             renderTable();
         }
 
+
         function renderTable() {
             glyphTableBody.innerHTML = '';
 
@@ -646,7 +649,10 @@
 
             const fragment = document.createDocumentFragment();
 
-            const activeTags = state.detectedFeatures.filter(f => f.active).map(f => `"${f.tag}" 1`).join(', ');
+            // Explicit feature settings string for new table cells
+            const activeFeatureSettings = state.detectedFeatures.length > 0 
+                ? state.detectedFeatures.map(f => `"${f.tag}" ${f.active ? 1 : 0}`).join(', ')
+                : 'normal';
 
             pageItems.forEach(item => {
                 const tr = document.createElement('tr');
@@ -660,7 +666,7 @@
                         const displayChar = alt.char ? escapeHtml(alt.char) : '✦';
                         alternatesHTML += `
                             <span class="inline-flex items-center gap-1 bg-indigo-950/40 border border-indigo-500/30 px-2 py-1 rounded text-xs text-indigo-200" title="GID: ${alt.gid} (${alt.name})">
-                                <span class="custom-font-cell text-lg leading-none" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeTags || 'normal'};">${displayChar}</span>
+                                <span class="custom-font-cell text-lg leading-none" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeFeatureSettings};">${displayChar}</span>
                                 <span class="text-[10px] text-indigo-400 font-mono">#${alt.gid}</span>
                             </span>
                         `;
@@ -672,7 +678,7 @@
                     <td class="py-3 px-4 font-mono text-indigo-400 font-medium">${item.hex}</td>
                     <td class="py-3 px-4 text-zinc-400">${item.unicode}</td>
                     <td class="py-3 px-4 text-center">
-                        <span class="custom-font-cell inline-block text-2xl text-zinc-100" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeTags || 'normal'};">
+                        <span class="custom-font-cell inline-block text-2xl text-zinc-100" style="font-family: '${state.fontFamily}', fallback-font; font-feature-settings: ${activeFeatureSettings};">
                             ${escapeHtml(item.char)}
                         </span>
                     </td>
