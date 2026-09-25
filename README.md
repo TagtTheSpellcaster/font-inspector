@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Version](https://img.shields.io/badge/version-1.4.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-browser%20%7C%20PWA-lightgrey)
 ![Built with HTML](https://img.shields.io/badge/built%20with-HTML%2FCSS%2FJavaScript-orange)
