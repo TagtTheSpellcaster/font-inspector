@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Inspector & Glyph Analyzer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- OpenType.js for Font Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/opentype.js/1.3.1/opentype.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+        
+        /* Font Feature Settings Utilities */
+        .ligatures-on {
+            font-feature-settings: "liga" 1, "clig" 1, "dlig" 1, "hlig" 1, "calt" 1;
+            font-variant-ligatures: normal common-ligatures discretionary-ligatures contextual;
+        }
+        .ligatures-off {
+            font-feature-settings: "liga" 0, "clig" 0, "dlig" 0, "hlig" 0, "calt" 0;
+            font-variant-ligatures: no-common-ligatures no-discretionary-ligatures no-contextual;
+        }
+
+        .fallback-font {
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        /* Drag & Drop Highlight */
+        .drag-over {
+            border-color: #6366f1 !important;
+            background-color: rgba(99, 102, 241, 0.08) !important;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+                    <i data-lucide="type" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Font Inspector <span class="text-xs font-normal px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">v1.0</span></h1>
+                    <p class="text-xs text-zinc-400">Analizzatore Unicode, Tabelle CMAP e Ligature OpenType</p>
+                </div>
+            </div>
+            
+            <div id="fontMetaBadge" class="hidden flex items-center gap-3 text-xs bg-zinc-800/80 border border-zinc-700/60 rounded-full px-3 py-1.5">
+                <span id="fontFamilyName" class="font-semibold text-zinc-200">Nessun font</span>
+                <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
+                <span id="fontGlyphCount" class="text-zinc-400">0 Glifi</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+        <!-- File Upload Area -->
+        <section id="dropZone" class="border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 bg-zinc-900/40 hover:bg-zinc-900/80 rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer relative group">
+            <input type="file" id="fontInput" accept=".ttf,.otf,.woff,.woff2" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+            <div class="flex flex-col items-center justify-center gap-3">
+                <div class="p-4 bg-zinc-800/80 group-hover:bg-indigo-600/20 text-zinc-400 group-hover:text-indigo-400 rounded-full transition-colors border border-zinc-700/50 group-hover:border-indigo-500/30">
+                    <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-zinc-200">
+                        Trascina e rilascia qui il tuo file font, oppure <span class="text-indigo-400 underline decoration-indigo-500/30 underline-offset-4">sfoglia</span>
+                    </p>
+                    <p class="text-xs text-zinc-500 mt-1">Formati supportati: TTF, OTF, WOFF, WOFF2</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area (Hidden by default until font loaded) -->
+        <div id="mainContent" class="hidden flex-1 flex flex-col gap-6">
+
+            <!-- Controls & Live Preview Card -->
+            <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                
+                <!-- Toolbar Controls -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-300">Anteprima Testo & Opzioni</h2>
+                    </div>
+
+                    <!-- Global Controls -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- Ligatures Toggle -->
+                        <label class="flex items-center gap-2.5 bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl px-3 py-1.5 cursor-pointer transition-colors text-xs select-none">
+                            <input type="checkbox" id="toggleLigatures" checked class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 relative"></div>
+                            <span class="font-medium text-zinc-300">Abilita Ligature (OpenType)</span>
+                        </label>
+
+                        <!-- Font Size Slider -->
+                        <div class="flex items-center gap-2 bg-zinc-800/60 border border-zinc-700/50 rounded-xl px-3 py-1.5 text-xs">
+                            <span class="text-zinc-400">Dimensione:</span>
+                            <input type="range" id="fontSizeSlider" min="12" max="96" value="32" class="w-24 accent-indigo-500 cursor-pointer">
+                            <span id="fontSizeLabel" class="text-zinc-300 font-mono w-8 text-right">32px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Area Input -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="previewInput" class="text-xs text-zinc-400 flex items-center justify-between">
+                            <span>Digita il testo da testare:</span>
+                            <span class="text-[10px] text-zinc-500">Es. fi, fl, ffi, ff, ==, =>, !=</span>
+                        </label>
+                        <textarea id="previewInput" rows="3" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 resize-none font-sans" placeholder="Scrivi qualcosa per testare il font e le sue legature..."></textarea>
+                    </div>
+
+                    <!-- Custom Font Render Display -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-xs text-zinc-400">Risultato Rendering (Font Caricato):</span>
+                        <div id="previewDisplay" class="w-full h-[88px] bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-zinc-100 overflow-auto break-words ligatures-on flex items-center" style="font-size: 32px;">
+                            Le affascinanti ff, fi, fl, ffi, ffl si collegano perfettamente!
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Unicode Glyph Table Section -->
+            <section class="bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-xl flex flex-col overflow-hidden flex-1">
+                
+                <!-- Table Controls Header -->
+                <div class="p-4 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-4 bg-zinc-900">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="grid" class="w-5 h-5 text-indigo-400"></i>
+                        <h2 class="text-sm font-semibold uppercase tracking-wider text-zinc-200">Mappatura Caratteri & Unicode</h2>
+                        <span id="glyphSearchCount" class="text-xs text-zinc-400 bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-700/50">0 trovati</span>
+                    </div>
+
+                    <!-- Search Input & Filters -->
+                    <div class="flex items-center gap-3 flex-1 max-w-md justify-end">
+                        <div class="relative w-full">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                            <input type="text" id="searchInput" placeholder="Cerca per carattere, Hex (es. U+0041 o 0041) o Decimale..." class="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table View Container -->
+                <div class="overflow-x-auto flex-1 min-h-[400px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-zinc-800 bg-zinc-950/50 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                                <th class="py-3 px-4 w-32">Unicode (Hex)</th>
+                                <th class="py-3 px-4 w-28">Decimale</th>
+                                <th class="py-3 px-4 text-center w-36">Font Caricato</th>
+                                <th class="py-3 px-4 text-center w-36">Fallback (Arial)</th>
+                                <th class="py-3 px-4">Nome / Info Glifo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="glyphTableBody" class="divide-y divide-zinc-800/50 text-sm font-mono">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Pagination Footer -->
+                <div class="p-4 border-t border-zinc-800 bg-zinc-900 flex items-center justify-between text-xs text-zinc-400">
+                    <div class="flex items-center gap-2">
+                        <span>Mostrando</span>
+                        <span id="pageRange" class="font-semibold text-zinc-200">0 - 0</span>
+                        <span>di</span>
+                        <span id="totalGlyphsLabel" class="font-semibold text-zinc-200">0</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btnPrevPage" class="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 rounded-lg border border-zinc-700/50 transition-colors">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <span id="currentPageLabel" class="px-3 font-medium text-zinc-300">Pagina 1</span>
+                        <button id="btnNextPage" class="p-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-zinc-200 rounded-lg border border-zinc-700/50 transition-colors">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // State Management
+        const state = {
+            font: null,
+            fontFamily: 'CustomLoadedFont',
+            glyphs: [],
+            filteredGlyphs: [],
+            currentPage: 1,
+            pageSize: 50,
+            ligaturesEnabled: true,
+            fontSize: 32
+        };
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fontInput = document.getElementById('fontInput');
+        const mainContent = document.getElementById('mainContent');
+        const fontMetaBadge = document.getElementById('fontMetaBadge');
+        const fontFamilyName = document.getElementById('fontFamilyName');
+        const fontGlyphCount = document.getElementById('fontGlyphCount');
+        
+        const previewInput = document.getElementById('previewInput');
+        const previewDisplay = document.getElementById('previewDisplay');
+        const toggleLigatures = document.getElementById('toggleLigatures');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontSizeLabel = document.getElementById('fontSizeLabel');
+
+        const glyphTableBody = document.getElementById('glyphTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const glyphSearchCount = document.getElementById('glyphSearchCount');
+        
+        const btnPrevPage = document.getElementById('btnPrevPage');
+        const btnNextPage = document.getElementById('btnNextPage');
+        const pageRange = document.getElementById('pageRange');
+        const totalGlyphsLabel = document.getElementById('totalGlyphsLabel');
+        const currentPageLabel = document.getElementById('currentPageLabel');
+
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- Event Listeners ---
+
+        // File Selection & Drag-and-Drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                handleFontFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fontInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFontFile(e.target.files[0]);
+            }
+        });
+
+        // Controls
+        toggleLigatures.addEventListener('change', (e) => {
+            state.ligaturesEnabled = e.target.checked;
+            updateLigaturesState();
+        });
+
+        fontSizeSlider.addEventListener('input', (e) => {
+            state.fontSize = e.target.value;
+            fontSizeLabel.textContent = `${state.fontSize}px`;
+            previewDisplay.style.fontSize = `${state.fontSize}px`;
+        });
+
+        previewInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            previewDisplay.textContent = val || "Digitazione vuota...";
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            filterGlyphs(e.target.value.trim());
+        });
+
+        btnPrevPage.addEventListener('click', () => {
+            if (state.currentPage > 1) {
+                state.currentPage--;
+                renderTable();
+            }
+        });
+
+        btnNextPage.addEventListener('click', () => {
+            const maxPage = Math.ceil(state.filteredGlyphs.length / state.pageSize);
+            if (state.currentPage < maxPage) {
+                state.currentPage++;
+                renderTable();
+            }
+        });
+
+        // --- Core Font Processing ---
+
+        async function handleFontFile(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Parse font using opentype.js
+                state.font = opentype.parse(arrayBuffer);
+
+                // Register Font in CSS environment using FontFace API
+                const fontFace = new FontFace(state.fontFamily, arrayBuffer);
+                const loadedFace = await fontFace.load();
+                document.fonts.add(loadedFace);
+
+                // Update UI metadata
+                const fontName = state.font.names.fullName?.en || state.font.names.fontFamily?.en || file.name.replace(/\.[^/.]+$/, "");
+                fontFamilyName.textContent = fontName;
+                
+                // Extract Glyphs and CMAP
+                extractGlyphs();
+
+                // Show Content Section
+                mainContent.classList.remove('hidden');
+                fontMetaBadge.classList.remove('hidden');
+                
+                // Apply font style to preview
+                previewDisplay.style.fontFamily = `"${state.fontFamily}", fallback-font`;
+
+                // Set initial text if empty
+                if (!previewInput.value) {
+                    previewInput.value = "Le affascinanti ff, fi, fl, ffi, ffl si collegano perfettamente!";
+                    previewDisplay.textContent = previewInput.value;
+                }
+
+                // Initial Table Render
+                filterGlyphs('');
+                
+            } catch (err) {
+                console.error("Errore nel caricamento del font:", err);
+                alert("Si è verificato un errore durante l'analisi del font. Verifica che il file sia valido (TTF, OTF, WOFF, WOFF2).");
+            }
+        }
+
+        function extractGlyphs() {
+            state.glyphs = [];
+            const cmap = state.font.tables.cmap;
+
+            if (!cmap) {
+                console.warn("Nessuna tabella CMAP trovata nel font.");
+                return;
+            }
+
+            // Extract unicodes from CMAP tables
+            const glyphMap = new Map();
+
+            // OpenType.js provides font.unicodes or glyph mappings
+            if (state.font.glyphs && state.font.glyphs.length) {
+                for (let i = 0; i < state.font.glyphs.length; i++) {
+                    const glyph = state.font.glyphs.get(i);
+                    if (glyph.unicodes && glyph.unicodes.length > 0) {
+                        glyph.unicodes.forEach(unicode => {
+                            glyphMap.set(unicode, glyph);
+                        });
+                    } else if (glyph.unicode !== undefined) {
+                        glyphMap.set(glyph.unicode, glyph);
+                    }
+                }
+            }
+
+            // Fallback parsing via font.tables.cmap
+            const unicodes = Array.from(glyphMap.keys()).sort((a, b) => a - b);
+
+            state.glyphs = unicodes.map(code => {
+                const char = String.fromCodePoint(code);
+                const hex = 'U+' + code.toString(16).padStart(4, '0').toUpperCase();
+                const glyph = glyphMap.get(code);
+
+                return {
+                    unicode: code,
+                    hex: hex,
+                    char: char,
+                    name: glyph ? (glyph.name || 'glifo_' + code) : 'sconosciuto'
+                };
+            });
+
+            fontGlyphCount.textContent = `${state.glyphs.length} Glifi`;
+        }
+
+        // --- Filtering and Pagination ---
+
+        function filterGlyphs(query) {
+            if (!query) {
+                state.filteredGlyphs = [...state.glyphs];
+            } else {
+                const q = query.toLowerCase().trim();
+                const isHexSearch = q.startsWith('u+') || q.startsWith('0x');
+                const cleanHex = q.replace(/^(u\+|0x)/, '');
+
+                state.filteredGlyphs = state.glyphs.filter(g => {
+                    const charMatch = g.char === q;
+                    const hexMatch = g.hex.toLowerCase().includes(q) || g.hex.toLowerCase().includes(cleanHex);
+                    const decMatch = g.unicode.toString().includes(q);
+                    const nameMatch = g.name.toLowerCase().includes(q);
+
+                    return charMatch || hexMatch || decMatch || nameMatch;
+                });
+            }
+
+            glyphSearchCount.textContent = `${state.filteredGlyphs.length} trovati`;
+            state.currentPage = 1;
+            renderTable();
+        }
+
+        function updateLigaturesState() {
+            if (state.ligaturesEnabled) {
+                previewDisplay.classList.remove('ligatures-off');
+                previewDisplay.classList.add('ligatures-on');
+            } else {
+                previewDisplay.classList.remove('ligatures-on');
+                previewDisplay.classList.add('ligatures-off');
+            }
+
+            // Apply ligatures class to loaded font cells in table
+            const glyphCells = document.querySelectorAll('.custom-font-cell');
+            glyphCells.forEach(cell => {
+                if (state.ligaturesEnabled) {
+                    cell.classList.remove('ligatures-off');
+                    cell.classList.add('ligatures-on');
+                } else {
+                    cell.classList.remove('ligatures-on');
+                    cell.classList.add('ligatures-off');
+                }
+            });
+        }
+
+        function renderTable() {
+            glyphTableBody.innerHTML = '';
+
+            const total = state.filteredGlyphs.length;
+            totalGlyphsLabel.textContent = total;
+
+            if (total === 0) {
+                glyphTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-zinc-500 font-sans">
+                            <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                            Nessun glifo trovato corrispondente ai criteri di ricerca.
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                pageRange.textContent = '0 - 0';
+                currentPageLabel.textContent = 'Pagina 0';
+                btnPrevPage.disabled = true;
+                btnNextPage.disabled = true;
+                return;
+            }
+
+            const maxPage = Math.ceil(total / state.pageSize);
+            if (state.currentPage > maxPage) state.currentPage = maxPage;
+
+            const startIndex = (state.currentPage - 1) * state.pageSize;
+            const endIndex = Math.min(startIndex + state.pageSize, total);
+
+            const pageItems = state.filteredGlyphs.slice(startIndex, endIndex);
+
+            const fragment = document.createDocumentFragment();
+
+            pageItems.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-zinc-800/40 hover:bg-zinc-800/30 transition-colors';
+
+                const ligClass = state.ligaturesEnabled ? 'ligatures-on' : 'ligatures-off';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono text-indigo-400 font-medium">${item.hex}</td>
+                    <td class="py-3 px-4 text-zinc-400">${item.unicode}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="custom-font-cell inline-block text-2xl text-zinc-100 ${ligClass}" style="font-family: '${state.fontFamily}', fallback-font;">
+                            ${escapeHtml(item.char)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="fallback-font inline-block text-2xl text-zinc-400">
+                            ${escapeHtml(item.char)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-zinc-400 text-xs font-sans">
+                        <span class="bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/40">${escapeHtml(item.name)}</span>
+                    </td>
+                `;
+                fragment.appendChild(tr);
+            });
+
+            glyphTableBody.appendChild(fragment);
+
+            // Update Pagination UI
+            pageRange.textContent = `${startIndex + 1} - ${endIndex}`;
+            currentPageLabel.textContent = `Pagina ${state.currentPage} di ${maxPage}`;
+
+            btnPrevPage.disabled = state.currentPage === 1;
+            btnNextPage.disabled = state.currentPage === maxPage;
+
+            lucide.createIcons();
+        }
+
+        // Helper to escape HTML characters safely
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
